@@ -1,0 +1,104 @@
+<pacman size="8">
+    <game_state score="0" lives="3" size="8" pellets_left="20" panic_countdown="0">
+        <node>
+            <node>
+                <node type="ghost1"/>
+                <node type="empty"/>
+                <node type="wall"/>
+                <node type="wall"/>
+            </node>
+            <node>
+                <node type="pellet"/>
+                <node type="pellet"/>
+                <node type="wall"/>
+                <node type="wall"/>
+            </node>
+            <node type="empty"/>
+            <node>
+                <node type="wall"/>
+                <node type="pacman"/>
+                <node type="empty"/>
+                <node type="empty"/>
+            </node>
+        </node>
+        <node>
+            <node>
+                <node type="pellet"/>
+                <node type="empty"/>
+                <node type="empty"/>
+                <node type="wall"/>
+            </node>
+            <node>
+                <node type="empty"/>
+                <node type="ghost2"/>
+                <node type="wall"/>
+                <node type="empty"/>
+            </node>
+            <node>
+                <node type="pellet"/>
+                <node type="pellet"/>
+                <node type="empty"/>
+                <node type="empty"/>
+            </node>
+            <node>
+                <node type="pellet"/>
+                <node type="empty"/>
+                <node type="pellet"/>
+                <node type="pellet"/>
+            </node>
+        </node>
+        <node>
+            <node>
+                <node type="ghost3"/>
+                <node type="pellet"/>
+                <node type="pellet"/>
+                <node type="pellet"/>
+            </node>
+            <node>
+                <node type="pellet"/>
+                <node type="pellet"/>
+                <node type="pellet"/>
+                <node type="empty"/>
+            </node>
+            <node>
+                <node type="empty"/>
+                <node type="wall"/>
+                <node type="empty"/>
+                <node type="pellet"/>
+            </node>
+            <node>
+                <node type="empty"/>
+                <node type="power_pellet"/>
+                <node type="pellet"/>
+                <node type="pellet"/>
+            </node>
+        </node>
+        <node>
+            <node>
+                <node type="empty"/>
+                <node type="wall"/>
+                <node type="empty"/>
+                <node type="wall"/>
+            </node>
+            <node>
+                <node type="empty"/>
+                <node type="pellet"/>
+                <node type="pellet"/>
+                <node type="ghost4"/>
+            </node>
+            <node>
+                <node type="empty"/>
+                <node type="wall"/>
+                <node type="empty"/>
+                <node type="empty"/>
+            </node>
+            <node>
+                <node type="wall"/>
+                <node type="empty"/>
+                <node type="empty"/>
+                <node type="empty"/>
+            </node>
+        </node>
+    </game_state>
+</pacman>
+
