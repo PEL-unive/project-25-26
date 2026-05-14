@@ -1,11 +1,11 @@
 # Programming and Laboratory Project, A.Y. 2025/2026
 
-This project involves implementing a simplified version of the classic game [Pac-Man](https://www.google.com/logos/2010/pacman10-i.html), focusing on (1) representing a single snapshot of the game as a 2D grid with quad-tree serialization, (2) implementing the movement logic for Pac-Man and the four ghosts, and (3) maintaining the *history* of the game as a doubly-linked list of snapshots.
+This project involves implementing a simplified version of the classic game [Pac-Man](https://www.google.com/logos/2010/pacman10-i.html), focusing on (1) representing a single snapshot of the game as a 2D grid with quad-tree serialization, (2) implementing the movement logic for Pac-Man and the four ghosts, and (3) maintaining the *history* of the game as a singly-linked list of snapshots.
 
 The project requires the implementation of **two** classes, `game_state` and `pacman`, as described in this document.
 
 * A `game_state` is a *value* representing one snapshot of the game (the grid plus a few counters). Two `game_state` objects can be compared, copied, serialized to/from XML, and modified cell by cell.
-* A `pacman` is the *container* that owns the whole game: an invariant game size and a doubly-linked list of `game_state` snapshots representing every position the game has ever been in. The game logic (`move(...)`) and the iterators live on this class.
+* A `pacman` is the *container* that owns the whole game: an invariant game size and a singly-linked list of `game_state` snapshots representing every position the game has ever been in. The game logic (`move(...)`) and the iterators live on this class.
 
 ### Table of contents
 
@@ -256,13 +256,12 @@ void print_ascii_art(std::ostream& os) const;
 
 ## 2. The `pacman` class <a name="pacman"></a>
 
-The `pacman` class is the *container* that represents an entire game: a fixed game size plus a doubly-linked list of `game_state` snapshots ordered chronologically (the head is the initial state, the tail is the latest state).
+The `pacman` class is the *container* that represents an entire game: a fixed game size plus a singly-linked list of `game_state` snapshots ordered chronologically (the head is the initial state, the tail is the latest state).
 
 ```cpp
 class pacman {
     struct node {
         game_state gs;
-        node* prev;
         node* next;
     };
 public:
