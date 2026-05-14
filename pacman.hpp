@@ -2,6 +2,9 @@
 #include <string>
 #include <iostream>
 #include <iterator>
+#include <cassert>
+
+constexpr uint32_t PANIC_RESET = 80;
 
 enum class cell_type {
     empty, wall, pellet, power_pellet,

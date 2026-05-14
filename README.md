@@ -4,8 +4,8 @@ This project involves implementing a simplified version of the classic game [Pac
 
 The project requires the implementation of **two** classes, `game_state` and `pacman`, as described in this document.
 
-* A `game_state` is a *value* representing one snapshot of the maze (the grid plus a few counters). Two `game_state` objects can be compared, copied, serialized to/from XML, and modified cell by cell.
-* A `pacman` is the *container* that owns the whole game: an invariant maze size and a doubly-linked list of `game_state` snapshots representing every position the game has ever been in. The game logic (`move(...)`) and the iterators live on this class.
+* A `game_state` is a *value* representing one snapshot of the game (the grid plus a few counters). Two `game_state` objects can be compared, copied, serialized to/from XML, and modified cell by cell.
+* A `pacman` is the *container* that owns the whole game: an invariant game size and a doubly-linked list of `game_state` snapshots representing every position the game has ever been in. The game logic (`move(...)`) and the iterators live on this class.
 
 ### Table of contents
 
@@ -35,7 +35,7 @@ private:
 };
 ```
 
-A `game_state` object **does not** carry any history pointers: it is a plain value, and copies / assignments behave exactly as one expects of a value type (deep-copy the grid and the scalars; no aliasing, no surprises). The history is the responsibility of the `pacman` class.
+A `game_state` object **does not** carry any history pointers: it is a plain value, and copies / assignments behave exactly as one expects of a value type (deep-copy the grid and the scalars). The history is the responsibility of the `pacman` class.
 
 ### Grid and Cell Types
 
@@ -50,7 +50,7 @@ Each cell in the grid is one of the values of the `cell_type` enum:
 * `pacman`: the player character.
 * `ghost1`, `ghost2`, `ghost3`, `ghost4`: the four enemy ghosts.
 
-**Indexing convention.** A cell is identified by a pair `(i, j)`, where `i` is the **row index** (counting from 0 at the top) and `j` is the **column index** (counting from 0 at the left). The grid is stored as `m_grid[i][j]`. The top-left cell is `(0, 0)`, the bottom-right cell is `(m_size-1, m_size-1)`. The four ghost corners and Pac-Man's reset position are therefore
+**Indexing convention.** A cell is identified by a pair `(i, j)`, where `i` is the **row index** (counting from 0 at the top) and `j` is the **column index** (counting from 0 at the left). The grid is stored as `m_grid[i][j]`. The top-left cell is `(0, 0)`, the bottom-right cell is `(m_size-1, m_size-1)`. The four ghost corners and Pac-Man's reset position are:
 ```
 ghost1 (top-left)     = (0,      0     )
 ghost2 (top-right)    = (0,      size-1)
@@ -72,33 +72,68 @@ The parser must accept arbitrary whitespace (spaces, tabs, newlines) between tok
 
 **Example.**
 
-The following 4 x 4 grid (small circles are pellets, the large circle is a power pellet, gray squares are walls, the colored characters are a ghost on the left and Pac-Man on the right) is encoded as the XML below:
+The following 8 x 8 grid (small circles are pellets, the large circle is a power pellet, gray squares are walls, the magenta characters are ghosts, the orange one is Pac-Man) is encoded as the XML below. Notice in particular that the entire bottom-right 4 x 4 quadrant is empty, so it is serialised as a single self-closing leaf `<node type="empty"/>` at level 1 of the tree:
 
 <p align="center">
-  <img src="figures/example1.png" width="300" alt="example1">
+  <img src="figures/example1.png" width="350" alt="example1">
 </p>
 
 ```xml
-<game_state score="0" lives="3" size="4" pellets_left="10" panic_countdown="0">
+<game_state score="0" lives="3" size="8" pellets_left="38" panic_countdown="0">
     <node>
+        <node>
+            <node type="ghost1"/>
+            <node type="pellet"/>
+            <node type="pellet"/>
+            <node type="wall"/>
+        </node>
+        <node>
+            <node type="wall"/>
+            <node type="pellet"/>
+            <node type="pellet"/>
+            <node type="pellet"/>
+        </node>
         <node type="pellet"/>
-        <node type="wall"/>
-        <node type="ghost2"/>
-        <node type="wall"/>
+        <node>
+            <node type="power_pellet"/>
+            <node type="pellet"/>
+            <node type="pellet"/>
+            <node type="pacman"/>
+        </node>
+    </node>
+    <node>
+        <node>
+            <node type="pellet"/>
+            <node type="wall"/>
+            <node type="wall"/>
+            <node type="pellet"/>
+        </node>
+        <node>
+            <node type="pellet"/>
+            <node type="ghost2"/>
+            <node type="pellet"/>
+            <node type="pellet"/>
+        </node>
+        <node>
+            <node type="pellet"/>
+            <node type="pellet"/>
+            <node type="empty"/>
+            <node type="pellet"/>
+        </node>
+        <node type="pellet"/>
     </node>
     <node>
         <node type="pellet"/>
-        <node type="empty"/>
-        <node type="pacman"/>
+        <node type="pellet"/>
+        <node>
+            <node type="wall"/>
+            <node type="pellet"/>
+            <node type="ghost3"/>
+            <node type="pellet"/>
+        </node>
         <node type="pellet"/>
     </node>
-    <node>
-        <node type="power_pellet"/>
-        <node type="pellet"/>
-        <node type="pellet"/>
-        <node type="wall"/>
-    </node>
-    <node type="pellet"/>
+    <node type="empty"/>
 </game_state>
 ```
 
@@ -153,7 +188,7 @@ void set_pellets_left(uint32_t pellets_left);
 void set_panic_countdown(uint32_t panic_countdown);
 ```
 
-`set_size(s)` can be called only on a "fresh" state (`m_grid == nullptr`). It allocates an `s x s` grid of `empty` cells and accepts the same values for `s` as the constructor; otherwise it throws `pacman_exception`. The other setters accept any `uint32_t` value and never throw -- it is the caller's responsibility to keep the counters consistent with the grid (for instance, after editing the grid through `operator()`, the caller may need to call `set_pellets_left` to update the running count).
+`set_size(s)` can be called only on a "fresh" state (`m_grid == nullptr`). It allocates an `s x s` grid of `empty` cells and accepts the same values for `s` as the constructor; otherwise, it throws `pacman_exception`. The other setters accept any `uint32_t` value and never throw -- it is the caller's responsibility to keep the counters consistent with the grid (for instance, after editing the grid through `operator()`, the caller may need to call `set_pellets_left` to update the running count).
 
 ### Cell Access
 
@@ -213,15 +248,15 @@ void print_ascii_art(std::ostream& os) const;
   +--------+
   ```
 
-  (This is a sample state and not necessarily a "valid initial maze": ghost3 and ghost4 are not at their corner positions. The corners themselves are clear of walls and pellets, as required.)
+  (This is a sample state and not necessarily a "valid initial game": ghost3 and ghost4 are not at their corner positions. The corners themselves are clear of walls and pellets, as required.)
 
-  You are free to pick your own glyphs and your own header line.
+  You are free to pick your own glyphs.
 
 ---
 
 ## 2. The `pacman` class <a name="pacman"></a>
 
-The `pacman` class is the *container* that represents an entire game: a fixed maze size plus a doubly-linked list of `game_state` snapshots ordered chronologically (the head is the initial state, the tail is the latest state).
+The `pacman` class is the *container* that represents an entire game: a fixed game size plus a doubly-linked list of `game_state` snapshots ordered chronologically (the head is the initial state, the tail is the latest state).
 
 ```cpp
 class pacman {
@@ -240,7 +275,7 @@ private:
 };
 ```
 
-All snapshots in a single `pacman` share the same `m_size`. The `m_length` member is the number of snapshots currently in the list.
+All snapshots (`game_state`) in a single `pacman` share the same `m_size`. The `m_length` member is the number of snapshots currently in the list.
 
 We describe the game's rules first, then the class API.
 
@@ -249,15 +284,15 @@ We describe the game's rules first, then the class API.
 The method `pacman::move(cell_type who, int delta_i, int delta_j)` creates a new `game_state` by applying one move to the *last* state of the history and appends the resulting state at the tail. The arguments `delta_i` and `delta_j` are the row and column deltas of the move (recall that row index `0` is the top, so `delta_i = -1` means "move up").
 
 * **Direction.** Exactly one of `delta_i, delta_j` must be non-zero, and equal to `+1` or `-1`. The four legal pairs are `(-1, 0)` (up), `(+1, 0)` (down), `(0, -1)` (left), `(0, +1)` (right).
-* **Walls / out of bounds.** If a character attempts to move into a wall, or off the edge of the grid, its position stays unchanged in the new state. A new state is still appended to the history.
-* **Ghost starting / reset positions.** The four ghost corners are `ghost1 = (0, 0)`, `ghost2 = (0, size-1)`, `ghost3 = (size-1, 0)`, `ghost4 = (size-1, size-1)`. A *valid* maze must contain no wall, pellet, or power pellet on any of those four cells. **The centre cell `(size/2, size/2)` must always be empty**: it can never contain a wall, a pellet, or a power pellet. (Characters may occupy it -- for instance, Pac-Man respawns there on death -- but the maze layout never places a structural obstacle on it.) `pacman::push_back` enforces this on every state appended to the history.
+* **Walls / out of bounds.** If a character attempts to move into a wall, or off the edge of the grid, its position stays unchanged in the new state. **A new state is still appended to the history anyway.**
+* **Ghost starting / reset positions.** The four ghost corners are `ghost1 = (0, 0)`, `ghost2 = (0, size-1)`, `ghost3 = (size-1, 0)`, `ghost4 = (size-1, size-1)`. A *valid* game must contain no wall, pellet, or power pellet on any of those four cells. **The centre cell `(size/2, size/2)` must always be empty**: it can never contain a wall, a pellet, or a power pellet. (Characters may occupy it -- for instance, Pac-Man respawns there on death -- but the game layout never places a structural obstacle on it.) `pacman::push_back` enforces this on every state appended to the history.
 * **Pac-Man / ghost contact.** If a move would cause Pac-Man and a ghost to share a cell -- whether Pac-Man moved into the ghost or the ghost moved into Pac-Man -- the outcome depends on the mode:
-    * **Normal mode** (`panic_countdown == 0`). Pac-Man loses a life (`lives` decreases by 1) and the surviving characters reset to their starting positions: Pac-Man to `(size/2, size/2)`, each still-living ghost to its corner. Ghosts eaten in previous panic episodes stay eaten (their cells become `empty`). Pellets and `score` are not affected by a reset. This reset is the **only** transition in which both Pac-Man and one or more ghosts may change position simultaneously.
-    * **Panic mode** (`panic_countdown > 0`). The ghost is eaten and Pac-Man earns points (see scoring table). The eaten ghost disappears forever; its cell becomes `empty`. If Pac-Man moved into the ghost, Pac-Man takes the ghost's cell; if the ghost moved into Pac-Man, Pac-Man stays put and the ghost's old cell becomes `empty`.
-* **Two ghosts.** Two ghosts cannot occupy the same cell. If a ghost attempts to move into another ghost's cell, its position stays unchanged.
-* **Ghost into a pellet.** A ghost cannot occupy a cell containing a pellet or a power pellet, but only an empty cell. When a ghost (originally on an empty cell) tries to step into a neighbouring cell containing a (power) pellet, the two are *swapped*: the ghost ends up on the (now-empty) old pellet cell, and the (power) pellet ends up on the ghost's old empty cell. `pellets_left` is unchanged.
+    * **Normal mode** (`panic_countdown == 0`). Pac-Man loses a life (`lives` decreases by 1) and the surviving characters reset to their starting positions: Pac-Man to `(size/2, size/2)`, each still-living ghost to its corner. Ghosts eaten in previous panic episodes stay eaten (they never re-appear again). Pellets and `score` are not affected by a reset. This reset is the **only** transition in which both Pac-Man and one or more ghosts may change position simultaneously.
+    * **Panic mode** (`panic_countdown > 0`). The ghost is eaten and Pac-Man earns points (see scoring table). The eaten ghost disappears forever. If Pac-Man moved into the ghost, Pac-Man takes the ghost's cell; if the ghost moved into Pac-Man, Pac-Man stays put and the ghost's old cell becomes `empty`.
+* **Two ghosts.** Two ghosts cannot occupy the same cell. If a ghost attempts to move into another ghost's cell, its position stays unchanged (they are not swapped).
+* **Ghost into a pellet.** A cell can clearly contain only one value of `cell_type`, hence when a ghost tries to step into a neighbouring cell containing a (power) pellet, the two are *swapped*: the ghost ends up on the old (power) pellet cell, and the (power) pellet ends up on the ghost's old empty cell. `pellets_left` is unchanged.
 * **Pac-Man eating a pellet.** When Pac-Man moves into a cell containing a pellet or a power pellet, the pellet disappears, `pellets_left` decreases by 1, and `score` increases as per the table below. Eating a `power_pellet` also enters panic mode.
-* **Winning / losing.** The game is won when `pellets_left` reaches 0; lost when `lives` reaches 0. Neither condition is enforced inside `move()`; it is up to the caller to stop the game.
+* **Winning / losing.** The game is won when `pellets_left` reaches 0; lost when `lives` reaches 0. It is up to the caller to stop the game by checking the return value of the `win()` method. (The caller might do further moves even if there are no pellets left.)
 * **Invalid `move(...)` arguments.** `move()` throws `pacman_exception` if the history is empty, if `who` is not one of `pacman, ghost1, ghost2, ghost3, ghost4`, if `(delta_i, delta_j)` is not a unit cardinal step, or if `who` is not present on the grid of the last state.
 
 ### Scoring System
@@ -271,24 +306,22 @@ The method `pacman::move(cell_type who, int delta_i, int delta_j)` creates a new
 | Eating **3rd Ghost** (in temporal order) | 800 |
 | Eating **4th Ghost** (in temporal order) | 1600 |
 
-The "n-th ghost" counter is global across the whole game (not reset between panic episodes); it can be derived from the grid as `4 - (number of ghosts on the grid before the eat)`.
+The "n-th ghost" counter is global across the whole game (not reset between panic episodes); it can be derived from the grid as `4 - (number of ghosts on the grid before the eat) + 1`.
 
 ### Panic Mode
 
-When Pac-Man eats a `power_pellet`, `panic_countdown` is set to **10**. While `panic_countdown > 0`, ghosts can be eaten; once it reaches 0, panic mode ends.
+When Pac-Man eats a `power_pellet`, `panic_countdown` is set to `PANIC_RESET` (a global constant in `pacman.hpp`). While `panic_countdown > 0`, ghosts can be eaten; once it reaches 0, panic mode ends.
 
-For an unambiguous ordering, every time `move()` produces a new state the `panic_countdown` is updated as follows:
+Every time `move()` produces a new state the `panic_countdown` is updated as follows:
 
 1. start from the previous state's `panic_countdown`,
 2. if it is greater than 0, decrement it by 1,
-3. then process the move; if Pac-Man eats a `power_pellet` during the move, set `panic_countdown` to 10 (overriding step 2).
-
-The "ghost eaten vs life lost" decision uses the *post-step-2* value of `panic_countdown` (i.e. after the decrement, before any power-pellet override). Eating a power pellet thus grants 10 *future* moves of panic protection.
+3. then process the move; if Pac-Man eats a `power_pellet` during the move, set `panic_countdown` to `PANIC_RESET` (overriding step 2).
 
 ### Constructors and Destructor
 
 * `pacman()`: default constructor. Empty container: `m_size = m_length = 0`, `m_head = m_tail = nullptr`.
-* `pacman(uint32_t size)`: empty container with the maze size pre-set. `size` must be 0 or a power of 2 greater than or equal to 4 (otherwise: `pacman_exception`). No snapshot is created.
+* `pacman(uint32_t size)`: empty container with the game size pre-set. `size` must be 0 or a power of 2 greater than or equal to 4 (otherwise: `pacman_exception`). No snapshot is created.
 * `pacman(pacman const& rhs)`: copy constructor. **Deep-copies the whole history**: the new game has the same size, the same length, and an independent linked list whose states are pairwise equal to those of `rhs`.
 * `pacman(pacman&& rhs)`: move constructor. Steals the size and the linked list from `rhs`, leaving `rhs` in the default-constructed state.
 * `~pacman()`: destructor. De-allocates every node in the list.
@@ -355,7 +388,7 @@ std::istream& operator>>(std::istream& is, pacman&       g);
 void print_ascii_art(std::ostream& os) const;
 ```
 
-A `pacman` game is serialized as XML inside a `<pacman>` root that carries the maze size, with one `<game_state>` child per snapshot in chronological order (head first, tail last):
+A `pacman` game is serialized as XML inside a `<pacman>` root that carries the game size, with one `<game_state>` child per snapshot in chronological order (head first, tail last):
 
 ```xml
 <pacman size="4">
@@ -377,7 +410,7 @@ A `pacman` game is serialized as XML inside a `<pacman>` root that carries the m
 
 ## 3. How to Test Your Code? <a name="testing"></a>
 
-Writing code is only half the job; the other half is designing thorough tests. During evaluation we will stress your code with valid and invalid inputs and exercise every operator. We recommend creating a file `tools/test.cpp` containing your own `main` that exercises both classes in isolation (constructor edge cases, every setter with valid and invalid inputs, every operator, the XML round-trip, ...). **Do not submit `test.cpp`**: only `pacman.cpp` is submitted.
+Writing code is only half the job; the other half is designing thorough tests. During evaluation we will stress your code with valid and invalid inputs and exercise every operator. We recommend creating a file `tools/test.cpp` containing your own `main` that exercises both classes in isolation (constructor edge cases, every setter with valid and invalid inputs, every operator, the XML read/write and read/write again...). **Do not submit `test.cpp`**: only `pacman.cpp` is submitted.
 
 We strongly recommend compiling your tests with the sanitizer flags discussed in class:
 
@@ -387,7 +420,7 @@ g++ -std=c++17 -Wall -Wextra -O0 -g -fsanitize=address ...
 
 Any memory error we find during evaluation will result in penalties.
 
-Specific scenarios worth testing explicitly:
+Specific scenarios worth testing explicitly (but not the only ones!):
 
 * **Boundary conditions.** Hitting a wall, walking off the edge of the grid, eating the last pellet, losing the last life, eating four ghosts in one panic episode, eating a power pellet while still in panic mode.
 * **XML round-trip.** For both `game_state` and `pacman`: serialize, parse back, compare with `operator==`. Cover non-trivial quad-tree decompositions, and (for `pacman`) histories with several states.
@@ -402,9 +435,10 @@ Your task is to implement the file `pacman.cpp`.
 
 Some important notes:
 
-1. `pacman.cpp` must contain **only** `#include "pacman.hpp"`. No other `#include` directives, no macros, no compiler-specific pragmas. The standard-library headers needed by both classes are already included by `pacman.hpp` (`<cstdint>`, `<string>`, `<iostream>`, `<iterator>`).
+1. `pacman.cpp` must contain **only** `#include "pacman.hpp"`. No other `#include` directives, no macros, no compiler-specific pragmas. The standard-library headers needed by both classes are already included by `pacman.hpp`.
 2. `pacman.cpp` **must not** define the `main` function: we will write it to test your code. If you define `main`, the project will not compile during evaluation.
 3. Do not define any new namespace.
+4. Do not print anything on `std::cout` and `std::cerr`. We will check this and invalidate the project if you do.
 
 ### Format and Submission Link
 
@@ -441,7 +475,15 @@ The subsequent appeals will be in September and January. The submission link (Go
 
 ## 5. Project Evaluation <a name="evaluation"></a>
 
-We will compile your code with the C++ 17 standard (`-std=c++17`). Any method that causes unexpected termination (e.g. `segmentation fault`) is awarded 0 points. An unimplemented method is awarded 0 points. The iterators are particularly important: if they are broken we cannot test the container's contents, so the rest of the `pacman` class effectively gets 0 points as well.
+We will compile your code with the C++ 17 standard (`-std=c++17`). Any method that causes unexpected termination (e.g. `segmentation fault`) is awarded 0 points. An unimplemented method is awarded 0 points. We will apply the following **incremental** grading scheme:
+
+| implemented methods | grades |
+| :--- | :--- |
+| stream operators | 0-20 |
+| + copy/move semantics, iterators | 21-24 |
+| + function `move(...)` | 25-30L |
+
+Of course, implementing the stream operators will require implementing also constructor, destructor, getters, setters, operator(), etc (so all methods are implicitly included in the above table). 
 
 ### Timeout
 
@@ -449,12 +491,12 @@ Your code must be reasonably fast. We will set a timeout of a few minutes (in re
 
 ### Plagiarism
 
-It is **strictly forbidden to use AI to generate any piece of code of this project.** Your code will be compared using a plagiarism detector and an AI detector, both of which can see through superficial renamings or loop-form changes. In the event of detected plagiarism or AI usage, all involved students will:
+It is **strictly forbidden to use AI to generate any piece of code of this project.** Your code will be compared using a plagiarism detector and an AI detector, both of which can see through superficial renamings, loop-form changes, or similar tricks. In the event of detected plagiarism or AI usage, all involved students will:
 
 * Have to retake the exam next year. The grade for Module 1, if already passed, will be annulled.
 * Be reported to the university's disciplinary committee, which decides how to proceed (this can lead to expulsion).
 
-If one of the involved students has already passed the exam (and therefore provided their code to a student who has yet to take the exam), we will delete the exam record; the student will have to retake the exam next year, and the case will be reported. If a code sample we receive merely *resembles* AI output or another student's code closely enough to be suspicious, you will be invited to an **additional detailed oral exam** on the project.
+If one of the involved students has already passed the exam (and therefore provided their code to a student who has yet to take the exam), we will delete the exam record; the student will have to retake the exam next year, and the case will be reported. If a code sample we receive merely *resembles* AI output or another student's code closely enough to be suspicious, you will be invited to an **additional detailed oral exam** on the project. 
 
 Two simple rules:
 
@@ -465,4 +507,4 @@ Two simple rules:
 
 ## 6. GitHub Issues <a name="issues"></a>
 
-If you find inaccuracies or want clarification on parts of this document or `pacman.hpp`, open a GitHub issue (the "Issues" tab at the top of the repository) citing the relevant line(s). To cite a specific line in `README.md`: open the file, click the `<>` "display the source blob" button, select the relevant line numbers, click the three dots → "Copy permalink"; paste the link in the issue. The same procedure applies to `pacman.hpp`.
+If you find inaccuracies or want clarification on parts of this document or `pacman.hpp`, open a GitHub issue (the "Issues" tab at the top of the repository) citing the relevant line(s). To cite a specific line in `README.md`: open the file by clicking on its name at the top of this page, click `Code` at the top, select the relevant line number, click the three dots → "Copy permalink"; paste the link in the issue. The same procedure applies to `pacman.hpp`.
