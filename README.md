@@ -375,7 +375,7 @@ void push_back(game_state const& gs);
 void move(cell_type who, int delta_i, int delta_j);
 ```
 
-* `push_back(gs)` appends a *copy* of `gs` at the tail of the history. If the container is non-empty, `gs.get_size()` must equal `this->size()`, otherwise `push_back` throws `pacman_exception`. If the container is empty, the call also sets `m_size = gs.get_size()`. Additionally, `push_back` enforces the centre-cell invariant: it throws if `gs(size/2, size/2)` is a wall, pellet, or power pellet. Apart from these checks `push_back` performs no game-logic validation -- it is the low-level "list append" and is used in particular by `operator>>` when reading a saved game. The game's normal play loop should use `move(...)` instead.
+* `push_back(gs)` appends a *copy* of `gs` at the tail of the history. If the container is non-empty, `gs.get_size()` must equal `this->size()`, otherwise `push_back` throws `pacman_exception`. If the container is empty, the call also sets `m_size = gs.get_size()`. Additionally, `push_back` throws an exception if `gs(size/2, size/2)` or one of the four corners is a wall. Apart from these checks `push_back` performs no game-logic validation -- it is the low-level "list append" and is used in particular by `operator>>` when reading a saved game. The game's normal play loop should use `move(...)` instead.
 * `move(who, delta_i, delta_j)` is where the game logic lives. It builds a new state from the *last* state of the history by applying the rules in [Movement and Interactions](#movement-and-interactions), and appends it at the tail. The new state's `panic_countdown` is computed as specified in [Panic Mode](#panic-mode).
 
 ### I/O Operations
