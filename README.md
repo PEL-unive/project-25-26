@@ -155,6 +155,11 @@ For an 8 x 8 grid whose top-left and bottom-right 4 x 4 quadrants are walls whil
     <node type="wall"/>
 </game_state>
 ```
+Finally, a self-closing `game_state` tag can only have all attributes equal to `0` and indicates a `nullptr` grid:
+
+```xml
+<game_state score="0" lives="0" size="0" pellets_left="0" panic_countdown="0"/>
+```
 
 Leaf and internal nodes can be mixed freely at any level. The maximum depth of the tree for a `2^k x 2^k` grid is `k`.
 
