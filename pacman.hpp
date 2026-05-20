@@ -3,6 +3,8 @@
 #include <iostream>
 #include <iterator>
 #include <string>
+#include <thread>
+#include <chrono>
 
 constexpr uint32_t PANIC_RESET = 80;
 
@@ -136,6 +138,8 @@ public:
 
     void push_back(game_state const& gs);
     void move(cell_type who, int delta_i, int delta_j);
+
+    void move(cell_type who); //facultative and not evaluated! with this you can implement a strategy (AI) that automatically plays the game
 
     void print_ascii_art(std::ostream& os) const;
 
