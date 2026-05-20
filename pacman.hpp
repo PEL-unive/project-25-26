@@ -5,6 +5,7 @@
 #include <string>
 #include <thread>
 #include <chrono>
+#include<sstream>
 
 constexpr uint32_t PANIC_RESET = 80;
 
