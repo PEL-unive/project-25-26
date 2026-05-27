@@ -470,8 +470,8 @@ so that it contains **only `pacman.cpp`** (no other files, not even hidden ones)
 
 The summer deadlines are:
 
-- **TBA**
-- **TBA**
+- 30 June
+- 26 July
 
 The subsequent appeals will be in September and January. The submission link (Google Drive) will be posted on the course Moodle page; you may resubmit an unlimited number of times before the deadline.
 
