@@ -472,6 +472,7 @@ The summer deadlines are:
 
 - 30 June
 - 26 July
+- 20 September
 
 The subsequent appeals will be in September and January. The submission link is: [https://forms.gle/MWZ6FXqDJJtPpjuH6](https://forms.gle/MWZ6FXqDJJtPpjuH6). Partial project evaluations are available at [https://drive.google.com/drive/folders/1DDswE6YrvHimxGtiiLZ_Eba8iUGSpdzU](https://drive.google.com/drive/folders/1DDswE6YrvHimxGtiiLZ_Eba8iUGSpdzU).
 
